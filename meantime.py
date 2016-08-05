@@ -1,4 +1,3 @@
-from pprint import pprint 
 import time
 import pickle
 import sys
@@ -20,20 +19,34 @@ def main(argv):
 		loadData()
 		
 
-
+#Use pickle to save "people" List
 def saveData():
 	pickle.dump(people,open("Data.pkl","wb"))
 	print "Data Saved"
 	printPeople()
-
+#use pickle to load "people" List
 def loadData():
 	global people
 	people = pickle.load(open("Data.pkl","rb"))	
 	print "Data loaded"
 	printPeople()
-	
-	
-	
+#seach through "people" list to find mac entry
+def macSearch(id):
+position = None
+	for x in range(0,len(people)):
+		if people[x].mac == id:
+			return id
+			#return index of entry
+		else:
+			return  None		
+			#if not present return none
+
+def updateExisting():
+
+
+def createEntry():
+
+
 #Print Structure
 def printPeople():
 	print "mac  |State|lastSeen   |duration|misscount"
@@ -57,10 +70,11 @@ def genData():
 	#create emp list
 	with open('hashFile') as infile:
 		for line in infile:
-			people.append(user(line[:-1],1,start_time,4,0))
-
-
-
+			id = macSearch[line[:-1]]
+			if id != None:	
+				updateExisting(id)
+			else:
+				createEntry()
 
 if __name__ == "__main__":
 	main(sys.argv[1])

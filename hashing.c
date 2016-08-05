@@ -14,6 +14,10 @@ int sum;
  }
   sum=sum*9;
 sum=sum%readStr[3]+sum;
+if (sum < 9999){
+sum*=10;
+
+}
  sprintf(hashStr,"%d",sum);
  
 }

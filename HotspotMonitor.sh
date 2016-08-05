@@ -44,6 +44,7 @@ do
 	timeNow=`date +%s`
 
   ./hashing macFile hashFile
+  python meantime.py
 
 	#  Send the unique MACs to the Thingitude server via mq
 	/home/pi/Hotspot/thingithonmq $macFile $wificount $timeNow
