@@ -3,15 +3,19 @@ import pickle
 import sys
 
 start_time = time.time()
-
-
+current_id = 0
+instance = None
 people = []
 
 def main(argv):
 	
-	
+	if argv == "run":
+		loadData()
+		saveData()
+		genData()
 	if argv == "save":
 		genData()
+		people_count = len(people)
 		#people.append(user(1,2,3,3,4))
 		print "saving data"
 		saveData()
@@ -22,29 +26,42 @@ def main(argv):
 
 #Use pickle to save "people" List
 def saveData():
-	pickle.dump(people,open("Data.pkl","wb"))
-	print "Data Saved"
+	global instance
+	if instance == None:
+		instance = 1
+	else:
+		instance+=1
+	data = [people,instance]
+	pickle.dump(data,open("Data.pkl","wb"))
+	print "Data Saved, Instance:", instance
 	printPeople()
 #use pickle to load "people" List
 def loadData():
 	global people
-	people = pickle.load(open("Data.pkl","rb"))	
+	global instance
+	data = []
+	data  = pickle.load(open("Data.pkl","rb")) 
 	print "Data loaded"
+	people = data[0]
+	instance= data[1]
 	printPeople()
 #seach through "people" list to find mac entry
 def macSearch(id):
+	print "MACSEARCH"
 	position = None
 	for x in range(0,len(people)):
+		print "Number:",x
 		if people[x].mac == id:
-			print "The id is ", id
+			
+			current_id = x
 			return id
-			#return index of entry
-		else:
-			return  None		
-			#if not present return none
+			#return index of entry	
+	return None
 
 def updateExisting(id):
 	print "updating"
+	people[current_id].lastSeen = time.time()
+
 def createEntry(mac):
 	people.append(user(mac,1,start_time,start_time,0,0))
 	print "creating"
@@ -70,16 +87,15 @@ class user(object):
 
 
 def genData():
-	#create emp list
 	with open('hashFile') as infile:
 		for line in infile:
-			id = macSearch(line[:-1]) 
+
+			id = macSearch(line[:-1])
 			if id != None:	
 				updateExisting(id)
 			else:
 				createEntry(line[:-1])
-				
 
 if __name__ == "__main__":
 	main(sys.argv[1])
-	
+
