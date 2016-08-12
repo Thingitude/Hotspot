@@ -31,6 +31,9 @@ monFile="/home/pi/Hotspot/monFile"
 hashfile="/home/pi/Hotspot/hashFile"
 macFile="/home/pi/Hotspot/macFile"
 duration=100
+meanOut=""
+
+cd /home/pi/Hotspot 
 
 while [ 1 -gt 0 ]  
 do
@@ -43,13 +46,11 @@ do
 	wificount=`cat $macFile | wc -l`
 	timeNow=`date +%s`
 
-  ./hashing macFile hashFile
-  python meantime.py
+	/home/pi/Hotspot/hashing macFile hashFile
+	meanOut=$(python /home/pi/Hotspot/meantime.py run)
 
-	#  Send the unique MACs to the Thingitude server via mq
-	/home/pi/Hotspot/thingithonmq $macFile $wificount $timeNow
 
 	#  Now display the number with the other data on the LCD display
-	/home/pi/Hotspot/hotspotmq $wificount
+	/home/pi/Hotspot/hotspotmq $wificount $meanOut
 
 done

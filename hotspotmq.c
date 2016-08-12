@@ -231,6 +231,10 @@ int main (int argc, char **argv)
 	char disp1[30];
 	char disp2[30];
 
+	if(argc!=4) {
+		printf("USAGE: hotspotmq <wificount> <duration> <people>\n");
+		return;
+	}
   
 	fd = wiringPiI2CSetup(LCDAddr);
 	// Setup pcf8591 on base pin 120, and address 0x48
@@ -258,11 +262,11 @@ int main (int argc, char **argv)
 	sprintf(disp1,"Mob %d Snd %d (%d)", wifiCount, meanSound, peakSound);  
 	if((humAttempt==5)) {
 		sprintf(disp2,"Hum ?? Tem ??"); 
-		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d", wifiCount, meanSound, peakSound);
+		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d,0,0,%s,%s", wifiCount, meanSound, peakSound,argv[2], argv[3]);
   
 	} else {
 		sprintf(disp2,"Hum %d.%d Tem %d.%d", dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3]); 
-		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d,%d.%d,%d.%d", wifiCount, meanSound, peakSound, dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3]);
+		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d,%d.%d,%d.%d,%s,%s", wifiCount, meanSound, peakSound, dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3],argv[2], argv[3]);
    printf("%s",ttnMsg);
 	}
 	write(0, 0, disp1);
