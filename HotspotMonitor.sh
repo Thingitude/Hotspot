@@ -42,11 +42,11 @@ do
    
 
 	#  Now filter out the unique MACs
-	sort -u $monFile > $macFile
+	sort -d -u $monFile > $macFile
 	wificount=`cat $macFile | wc -l`
 	timeNow=`date +%s`
 
-	/home/pi/Hotspot/hashing macFile hashFile
+	/home/pi/Hotspot/hashing macFile hashFile appleM
 	meanOut=$(python /home/pi/Hotspot/meantime.py run)
 
 
