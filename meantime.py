@@ -1,9 +1,12 @@
+from __future__ import division
 import time
 import pickle
+import os
 import sys
+end_string = "/home/pi/Hotspot/ttnpub 0,0,0,0,0,0,{}"
 
-session_count = 0
-mac_frac = None
+session_count = 1
+mac_frac = 0
 apple_count = 1
 start_time = time.time()
 instance = None
@@ -28,15 +31,18 @@ def main(argv):
 		genData()
 		saveData()
 		outputData()
-	if argv == "save":
+	if argv == "refresh":
 		genData()
 		people_count = len(people)
-		
-		print "saving data"
-		saveData()
+	if argv == "day":
+		loadData()
+		endDay()
 	if argv == "load":
 		print "loading data"
 		loadData()
+	if argv == "print":
+		loadData()
+		printPeople()
 		
 
 #Use pickle to save "people" List
@@ -44,7 +50,7 @@ def saveData():
 	global instance
 	global mac_frac
 
-	mac_frac = session_count/apple_count
+	mac_frac = (mac_frac +(apple_count/session_count))/2
 	if instance == None:
 		instance = 1
 	else:
@@ -58,6 +64,7 @@ def loadData():
 	global people
 	global instance
 	global session_count
+	global mac_frac
 	data = []
 	data  = pickle.load(open("Data.pkl","rb")) 
 	#print "Data loaded"
@@ -94,6 +101,7 @@ def macSearch(id):
 			return None
 def updateExisting(id):
 	current_id = findElement(id)
+	people[current_id].start = 1
 	people[current_id].lastSeen = long(time.time())
 	people[current_id].duration = long(people[current_id].lastSeen - people[current_id].start)
 	people[current_id].misscount = 0
@@ -153,8 +161,8 @@ def meanTime():
 	return sum/len(people)
 
 def endDay():
-	print "stuff"
-
-
+	count = len(people) * mac_frac
+	count = int(count)
+	os.system(end_string.format(count))
 if __name__ == "__main__":
 	main(sys.argv[1])

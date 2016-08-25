@@ -1,4 +1,4 @@
-/*
+  /*
  *   Sendo Hotspot data to TTN UNO attached to Pi via USB
  */
 
