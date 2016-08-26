@@ -1,3 +1,5 @@
+monFile="/home/pi/Hotspot/monFile"
+macFile="/home/pi/Hotspot/macFile"
 meanOut=""
 #  Now filter out the unique MACs
 	sort -d -u $monFile > $macFile

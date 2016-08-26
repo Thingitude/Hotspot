@@ -46,7 +46,7 @@ echo "Setting up Cron Jobs"
 #write out current crontab
 #echo new cron into cron file
 echo "00 04 * * * python  /home/pi/Hotspot/meantime.py day" > mycron
-echo "30 * * * *   /home/pi/Hotspot/sendData.sh" >> mycron
+echo "30 * * * *   sh  /home/pi/Hotspot/sendData.sh" >> mycron
 #install new cron file
 crontab mycron
 rm mycron
