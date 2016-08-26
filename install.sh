@@ -34,6 +34,7 @@ else
 fi
 
 cd "~"
+rm rf Hotspot
 git clone https://github.com/SamKimbinyi/Hotspot.git
 
 echo "Setting up Auto Run"
