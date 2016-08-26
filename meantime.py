@@ -1,4 +1,3 @@
-from __future__ import division
 import time
 import pickle
 import os
@@ -32,7 +31,7 @@ def main(argv):
 		saveData()
 		outputData()
 	if argv == "refresh":
-		genData()
+		saveData()
 		people_count = len(people)
 	if argv == "day":
 		loadData()
@@ -101,7 +100,6 @@ def macSearch(id):
 			return None
 def updateExisting(id):
 	current_id = findElement(id)
-	people[current_id].start = 1
 	people[current_id].lastSeen = long(time.time())
 	people[current_id].duration = long(people[current_id].lastSeen - people[current_id].start)
 	people[current_id].misscount = 0
@@ -120,8 +118,8 @@ def createEntry(mac):
 
 #Print Structure
 def printPeople():
-	print "mac  |State|Start          |lastSeen     |duration|misscount|apple"
-	print "=============================================================="
+	print "mac                             |State|Start       |lastSeen     |duration|misscount|apple"
+	print "=============================================================================================="
 	for x in range(0,len(people)):
 		print people[x].mac + "|" ,  people[x].state , "  |" ,people[x].start,"|" ,people[x].lastSeen , "|", people[x].duration ,"     |", people[x].misscount, "|",people[x].apple
 

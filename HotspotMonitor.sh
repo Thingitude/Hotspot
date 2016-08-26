@@ -46,7 +46,7 @@ do
 	wificount=`cat $macFile | wc -l`
 	timeNow=`date +%s`
 
-	/home/pi/Hotspot/hashing macFile hashFile appleM
+	python /home/pi/Hotspot/hashing.py
 	meanOut=$(python /home/pi/Hotspot/meantime.py run)
 
 

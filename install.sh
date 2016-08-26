@@ -41,3 +41,11 @@ echo "Setting up Auto Run"
 echo "Autorun the Reading Hotspot monitor script" >>  /etc/rc.local
 echo "sudo /home/pi/Hotspot/HotspotMonitor.sh 2>/var/log/hotspot.log &" >> /etc/rc.local
 
+echo "Setting up Cron Jobs"
+#write out current crontab
+#echo new cron into cron file
+echo "00 04 * * * python  /home/pi/Hotspot/meantime.py day" > mycron
+echo "30 * * * *   /home/pi/Hotspot/sendData.sh" >> mycron
+#install new cron file
+crontab mycron
+rm mycron
