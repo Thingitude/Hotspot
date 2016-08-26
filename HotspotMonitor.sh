@@ -28,24 +28,29 @@ airmon-ng start wlan0 6
 
 #  Set up the parameters for the wifi monitoring
 monFile="/home/pi/Hotspot/monFile"
+hashfile="/home/pi/Hotspot/hashFile"
 macFile="/home/pi/Hotspot/macFile"
 duration=100
+meanOut=""
+
+cd /home/pi/Hotspot 
 
 while [ 1 -gt 0 ]  
 do
-	tshark -a duration:$duration -f wlan[0]=0x40 -i mon0 -T fields -E separator=,  -e wlan.sa 1> $monFile
-
-	sleep 30s
+	tshark -a duration:$duration -f wlan[0]=0x40 -i mon0 -T fields -E separator=,  -e wlan.sa  1> $monFile
+  
+   
 
 	#  Now filter out the unique MACs
-	sort -u $monFile > $macFile
+	sort -d -u $monFile > $macFile
 	wificount=`cat $macFile | wc -l`
 	timeNow=`date +%s`
 
-	#  Send the unique MACs to the Thingitude server via mq
-	/home/pi/Hotspot/thingithonmq $macFile $wificount $timeNow
+	python /home/pi/Hotspot/hashing.py
+	meanOut=$(python /home/pi/Hotspot/meantime.py run)
+
 
 	#  Now display the number with the other data on the LCD display
-	/home/pi/Hotspot/hotspotmq $wificount
+	/home/pi/Hotspot/hotspotmq $wificount $meanOut
 
 done

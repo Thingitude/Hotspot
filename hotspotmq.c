@@ -24,7 +24,9 @@ int BLEN = 1;
 int fd;
 char *wifiCountFile="/home/pi/Hotspot/wifiCountFile";
 char mqMsg[30];
-char ttnMsg[100];
+char ttnMsg[30];
+
+
 
 int read_dht11_dat()
 {
@@ -225,9 +227,15 @@ int main (int argc, char **argv)
 	int peakSound=0;
 	int meanSound=0;
 	int humAttempt=0;
+  int averageStay =0;
 	char disp1[30];
 	char disp2[30];
 
+	if(argc!=4) {
+		printf("USAGE: hotspotmq <wificount> <duration> <people>\n");
+		return;
+	}
+  
 	fd = wiringPiI2CSetup(LCDAddr);
 	// Setup pcf8591 on base pin 120, and address 0x48
 	pcf8591Setup (PCF, 0x48);
@@ -248,23 +256,23 @@ int main (int argc, char **argv)
 		delay(1000);
 		humAttempt++;
 	}
+ 
+
 	clear();
 	sprintf(disp1,"Mob %d Snd %d (%d)", wifiCount, meanSound, peakSound);  
 	if((humAttempt==5)) {
 		sprintf(disp2,"Hum ?? Tem ??"); 
-		sprintf(mqMsg,"/home/pi/Hotspot/mqpub %d,%d,%d", wifiCount, meanSound, peakSound);
-		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub \'{\"mac\":\"%d\",\"s\":\"%d\",\"xs\":\"%d\"}\'", wifiCount, meanSound, peakSound);
+		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d,0,0,%s,%s", wifiCount, meanSound, peakSound,argv[2], argv[3]);
+  
 	} else {
 		sprintf(disp2,"Hum %d.%d Tem %d.%d", dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3]); 
-		sprintf(mqMsg,"/home/pi/Hotspot/mqpub %d,%d,%d,%d.%d,%d.%d", wifiCount, meanSound, peakSound, dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3]);
-		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub \'{\"mac\":\"%d\",\"s\":\"%d\",\"xs\":\"%d\",\"h\":\"%d.%d\",\"t\":\"%d.%d\"}\'", wifiCount, meanSound, peakSound, dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3]);
+		sprintf(ttnMsg,"/home/pi/Hotspot/ttnpub %d,%d,%d,%d.%d,%d.%d,%s,%s", wifiCount, meanSound, peakSound, dht11_dat[0], dht11_dat[1], dht11_dat[2], dht11_dat[3],argv[2], argv[3]);
+   printf("%s",ttnMsg);
 	}
 	write(0, 0, disp1);
 	write(0, 1, disp2);
-	printf("Try to send >> %s <<\n", mqMsg);
-	system(mqMsg);
 	printf("Try to send >> %s <<\n", ttnMsg);
 	system(ttnMsg);
 	
-	return 0 ;
+	return 0;
 }
