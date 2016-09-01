@@ -1,6 +1,10 @@
-monFile="/home/pi/Hotspot/monFile"
+#!/bin/sh
+cd /home/pi/Hotspot
+
 macFile="/home/pi/Hotspot/macFile"
+monFile="/home/pi/Hotspot/monFile"
 meanOut=""
+
 #  Now filter out the unique MACs
 	sort -d -u $monFile > $macFile
 	wificount=`cat $macFile | wc -l`
