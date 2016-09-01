@@ -31,8 +31,8 @@ def main(argv):
 		saveData()
 		outputData()
 	if argv == "refresh":
-		saveData()
-		people_count = len(people)
+		refresh()
+		printPeople()
 	if argv == "day":
 		loadData()
 		endDay()
@@ -162,5 +162,14 @@ def endDay():
 	count = len(people) * mac_frac
 	count = int(count)
 	os.system(end_string.format(count))
+def refresh():
+	global people
+	global instance
+	global mac_frac
+	
+	people = []
+	instance = 0
+	mac_frac = 0
+	saveData()
 if __name__ == "__main__":
 	main(sys.argv[1])
