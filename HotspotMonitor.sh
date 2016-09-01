@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# * Hotspot Monitor - count the mobile phones in range        */
+# * HotspotMonitor.sh - turn the wifi into monitor mode       */
 # * (c) Mark Stanley 2016                                     */
 # *                                                           */
 # * Created for the Reading Hotspot project, 2016             */
@@ -12,19 +12,9 @@
 # * keep these comments at the top of the code so credit and  */
 # * copyright are preserved.                                  */
 
-#  Reset the wifi to a known state
-airmon-ng stop mon0 
-ifconfig wlan0 down
-iwconfig wlan0 mode managed
-ifconfig wlan0 up
-
-#  Switch the wifi to monitor mode
-ifconfig wlan0 down
-iwconfig wlan0 mode Monitor
-ifconfig wlan0 up
-
-#  Get mon0 up and running
-airmon-ng start wlan0 6
+#  This script should be run from Cron, we are using 5 min intervals
+#  Note the optional argument - to send a message or not.  We send
+#  messages every 30 mins, again set up in Cron.
 
 #  Set up the parameters for the wifi monitoring
 monFile="/home/pi/Hotspot/monFile"
@@ -33,24 +23,38 @@ macFile="/home/pi/Hotspot/macFile"
 duration=100
 meanOut=""
 
-cd /home/pi/Hotspot 
+cd /home/pi/Hotspot
 
-while [ 1 -gt 0 ]  
-do
-	tshark -a duration:$duration -f wlan[0]=0x40 -i mon0 -T fields -E separator=,  -e wlan.sa  1> $monFile
-  
+#  Tshark listens for wifi probe requests and captures MAC addresses
+tshark -a duration:$duration -f wlan[0]=0x40 -i mon0 -T fields -E separator=,  -e wlan.sa  1> $monFile
    
+#  Now filter out the unique MACs
+sort -d -u $monFile > $macFile
+wificount=`cat $macFile | wc -l`
 
-	#  Now filter out the unique MACs
-	sort -d -u $monFile > $macFile
-	wificount=`cat $macFile | wc -l`
-	timeNow=`date +%s`
+#  Hash them like good citizens (we don't want to keep MAC addresses)
+python /home/pi/Hotspot/hashing.py
 
-	python /home/pi/Hotspot/hashing.py
-	meanOut=$(python /home/pi/Hotspot/meantime.py run)
+#  Update the mean duration
+meanOut=$(python /home/pi/Hotspot/meantime.py run)
+timenow=`date`
 
-
-	#  Now display the number with the other data on the LCD display
+#  Decide whether to send a message or not
+case "$1" in
+  "")
+	# Nothing to do
+	echo "Did not send at $timenow\n" >>/home/pi/Hotspot/logfile
+	exit
+	;;
+  send)
+	# Collect sensor stats and send message
+	echo "Launched hotspotmq at $timenow\n" >>/home/pi/Hotspot/logfile
 	/home/pi/Hotspot/hotspotmq $wificount $meanOut
+	;;
+  *)
+	# Usage error
+	echo "USAGE: HotspotMonitor.sh [start]"
+	exit 3
+	;;
+esac
 
-done
