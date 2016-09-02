@@ -15,7 +15,7 @@
 echo "WifiMon running in 2 mins"
 echo `date`
 
-#sleep 120
+sleep 120
 
 #  Reset the wifi to a known state
 airmon-ng stop mon0 
