@@ -13,6 +13,7 @@ def main():
             currentMac = line
             hashMac()
     hashFile.close()
+    open("macFile","w").close()
             
 
 def isApple(firstEight):

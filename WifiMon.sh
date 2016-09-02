@@ -12,6 +12,11 @@
 # * keep these comments at the top of the code so credit and  */
 # * copyright are preserved.                                  */
 
+echo "WifiMon running in 2 mins"
+echo `date`
+
+sleep 120
+
 #  Reset the wifi to a known state
 airmon-ng stop mon0 
 ifconfig wlan0 down
