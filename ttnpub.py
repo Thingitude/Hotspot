@@ -22,16 +22,6 @@ except RuntimeError:
 # External module imports
 import time, sys, tty, termios, serial, base64
 
-# i2c screen uses Adafruit drivers
-import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
-import Image
-import ImageDraw
-import ImageFont
-
-# i2c sensor uses Adafruit drivers
-import Adafruit_BMP.BMP085 as BMP085
-
 # Check usage
 if len(sys.argv) != 2:
 	print("USAGE: ttnpub.py <\"message\">")
@@ -41,7 +31,10 @@ if len(sys.argv) != 2:
 
 thisMsg=sys.argv[1].encode('hex')
 
-#print(thisMsg)
+print("Message is: ")
+print(sys.argv[1])
+print("Encoded is: ")
+print(thisMsg)
 
 ########################################################################
 # Serial Port Definition from RPi towards RN2483 module
@@ -82,28 +75,8 @@ GPIO.setup(Reset, GPIO.OUT)
 GPIO.output(LED1, GPIO.HIGH)			# Turn off
 GPIO.output(LED2, GPIO.HIGH)			# Turn off
 
-# Define variables initial values
-count = 48
-counthex = 30
-tdata = 0
-temp_decimal = 00 
-temp_ascii = 00
-presure_decimal = 00
-presure_ascii = 00	
-alt_decimal = 00
-alt_ascii = 00
-compensate = 101285
-
 ########################################################################
-# Setup Screen - i2c from Adafruit
-########################################################################
-# 128x32 display with hardware I2C:
-RST = 24
-disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
-
-
-########################################################################
-# Sub-Routines - Read data and display
+# Sub-Routines - Read data from radio
 ########################################################################
 
 # Used to read-in RN2483 data responses pending a Carriage return;
@@ -115,28 +88,6 @@ def readlineCR(port):
         if ch=='\r' or ch=='':
             return rv
 
-# Used to update screen and OLED with current data;
-def displaydata():
-	return()
-	
-def screenWelcome():
-# Write three lines of text.
-	
-	return()
-
-def screenBlank():
-# Clear Display 
-# Draw a black filled box to clear the image.
-	return()
-
-def screenID():
-	return()
-
-def screenConnected():
-	return()
-
-def screenTransmitted():
-	return()
 
 ########################################################################
 # Start-up Code
@@ -184,7 +135,7 @@ rcv = readlineCR(port)
 print("System Mode:" + (rcv))
 time.sleep(1)
 
-port.write("radio set freq 868000000\r\n")
+#port.write("radio set freq 868000000\r\n")
 rcv = readlineCR(port)
 print("SET Frequency Band:(in Hertz)" + (rcv))
 time.sleep(1)
@@ -198,20 +149,28 @@ time.sleep(1)
 # Setup System (Thingithon Keys)
 ########################################################################
 
-port.write("mac set appeui 70B3D57ED00004CD\r\n")
+port.write("mac set appeui 70B3D57ED0000CD9\r\n")
 while True:
 	tdata = readlineCR(port)
 	if tdata.strip() == "ok":
 		print("Application EUI is Valid")
 		break
-port.write("mac set appkey 3E3E8548702408B34FADB0167871513F\r\n")
+port.write("mac set appkey 3B49BB48C995D2E2522393CB8DE1AF74\r\n")
+#port.write("mac set appkey 780EE099EDEF37C9D5AF8F6F22026509\r\n")
 while True:
 	tdata = readlineCR(port)
 	if tdata.strip() == "ok":
 		print("Application Key is Valid")
 		break
-port.write("mac join otaa\r\n")
-while True:
+
+
+print("Joining the network.")
+tryCount=0
+while tryCount < 6:
+	tryCount=tryCount+1
+	time.sleep(5)
+	port.write("mac join otaa\r\n")
+	time.sleep(1)
 	tdata = readlineCR(port)
 	print(tdata.strip())
 	if tdata.strip() == "accepted":
@@ -219,23 +178,32 @@ while True:
 		break
 	if tdata.strip() == "denied":
 		print("Error State - join not accepted")
-		time.sleep(5)
-		port.write("mac join otaa\r\n")
+		time.sleep(2)
 	if tdata.strip() == "busy":
 		print("Error State - busy")
 		time.sleep(5)
-		port.write("mac join otaa\r\n")
+	if tdata.strip() == "no_free_ch":
+		print("Error State - no free channel")
+		time.sleep(60)
 
 time.sleep(3)
-
 
 # Confirm device ID on TTN;
 		
 print("MAC GET STATUS")
-port.write("mac get status\r\n")
-while True:
+tryCount=0
+while tryCount < 10:
+	tryCount=tryCount+1
+	port.write("mac get status\r\n")
 	tdata = readlineCR(port)
 	print(tdata.strip())
+	if tdata.strip() == "ok":
+		print("Good to go")
+		time.sleep(3)
+	if tdata.strip() == "00000001":
+		print("System Ready - MAC level Confirmed Ready")
+		time.sleep(1)
+		break
 	if tdata.strip() == "0001":
 		print("System Ready - MAC level Confirmed Ready")
 		time.sleep(1)
@@ -243,9 +211,12 @@ while True:
 	if tdata.strip() == "0000":
 		print("Please Wait")
 		time.sleep(5)
-		port.write("mac get status\r\n")
+	if tdata.strip() == "00000000":
+		print("Please Wait")
+		time.sleep(5)
 	if tdata.strip() == "00000401":
 		print("Not sure what this means... try anyway")
+		time.sleep(1)
 		break
 		
 
@@ -257,31 +228,37 @@ print("SEND MESSAGE")
 port.write("mac tx uncnf 1 " + thisMsg + "\r\n" )
 print("mac tx uncnf 1 " + thisMsg + "\r\n" )
 print("Port Write")
-while True:
+tryCount=0
+while tryCount < 5:
+	tryCount=tryCount+1
 	tdata = readlineCR(port)
 	print("post-send")
 	print(tdata.strip())
+	if tdata.strip() == "not_joined":
+		print("Error - not joined gateway, abort attempt.")
+		break
 	if tdata.strip() == "ok":
 		print("Data Sent to TX buffer")
 		break
 	if tdata.strip() == "busy":
 		print("Please Wait")
-		time.sleep(30)
-		port.write("mac tx uncnf 1 " + thisMsg + "\r\n")
+		time.sleep(10)
+		print("BUSY - RE-SEND MESSAGE")
+		port.write("mac tx uncnf 1 " + thisMsg + "\r\n" )
+		print("mac tx uncnf 1 " + thisMsg + "\r\n" )
 	if tdata.strip() == "no_free_ch":	
 		print("Please Wait - Duty Cycle exceeed for <1%")
 		time.sleep(30)
-		print("Resending Data.....")
-		port.write("mac tx uncnf 1 " + thisMsg + "\r\n")
-		print(port.write)
-		print("Data Re-sent")
+		print("NO FREE CH - RE-SEND MESSAGE")
+		port.write("mac tx uncnf 1 " + thisMsg + "\r\n" )
+		print("mac tx uncnf 1 " + thisMsg + "\r\n" )
 	
-while True:
+tryCount=0
+while tryCount < 5:
+	tryCount=tryCount+1
 	tdata = readlineCR(port)
 	if tdata.strip() == "mac_tx_ok":
 		print("Data Sent OTA")
-		screenBlank()
-		screenTransmitted()
 		time.sleep(1)
 		break
 	if tdata.strip() == "mac_err":
