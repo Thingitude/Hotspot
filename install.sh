@@ -45,7 +45,8 @@ echo "sudo /home/pi/Hotspot/HotspotMonitor.sh 2>/var/log/hotspot.log &" >> /etc/
 echo "Setting up Cron Jobs"
 #write out current crontab
 #echo new cron into cron file
-echo "05 00 * * * python /home/pi/Hotspot/meantime.py day" > mycron
+echo "@reboot sudo /home/pi/Hotspot/WifiMon.sh" > mycron
+echo "05 00 * * * python /home/pi/Hotspot/meantime.py day" >> mycron
 echo "08 00 * * * python /home/pi/Hotspot/meantime.py refresh" >> mycron
 echo "00,30 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh send" >>mycron
 echo "10,20,40,50 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh">>mycron
