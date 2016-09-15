@@ -36,6 +36,7 @@ def main(argv):
 	if argv == "day":
 		loadData()
 		endDay()
+		refresh()
 	if argv == "load":
 		print "loading data"
 		loadData()
@@ -55,7 +56,7 @@ def saveData():
 	else:
 		instance+=1
 	data = [people,instance,mac_frac]
-	pickle.dump(data,open("Data.pkl","wb"))
+	pickle.dump(data,open("/home/pi/Hotspot/Data.pkl","wb"))
 	#print "Data Saved, Instance:", instance
 	#printPeople()
 #use pickle to load "people" List
@@ -65,7 +66,7 @@ def loadData():
 	global session_count
 	global mac_frac
 	data = []
-	data  = pickle.load(open("Data.pkl","rb")) 
+	data  = pickle.load(open("/home/pi/Hotspot/Data.pkl","rb")) 
 	#print "Data loaded"
 	people = data[0]
 	instance= data[1]
@@ -147,7 +148,8 @@ def genData():
 				createEntry(line[:-1])
 def outputData():
 	#calculate the data to get sent
-	sys.stdout.write(str(meanTime()) + " " + str(len(people)))
+	#sys.stdout.write(str(meanTime()) + " " + str(len(people)))
+	sys.stdout.write(str(meanTime()) + " " + str(totPeople()))
 	
 
 def meanTime():
@@ -157,6 +159,14 @@ def meanTime():
 			continue
 		sum += int(i.duration/60)
 	return sum/len(people)
+
+def totPeople():
+	sum=0
+	for i in people:
+		if i.duration == 0:
+			continue
+		sum = sum +1
+	return sum
 
 def endDay():
 	count = len(people) * mac_frac
