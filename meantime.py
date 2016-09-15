@@ -10,7 +10,7 @@ apple_count = 1
 start_time = time.time()
 instance = None
 people = []
-num_lines = sum(1 for line in open('hashFile'))
+num_lines = sum(1 for line in open('/home/pi/Hotspot/hashFile'))
 
 
 
@@ -88,7 +88,7 @@ def peopleSearch(id):
 	return None
 def macSearch(id):
 
-	with open('hashFile') as infile:
+	with open('/home/pi/Hotspot/hashFile') as infile:
 		if id in infile:
 			return findElement(id[:-1])
 			print "located"
@@ -138,7 +138,7 @@ class user(object):
 
 def genData():
 	global session_count
-	with open('hashFile') as infile:
+	with open('/home/pi/Hotspot/hashFile') as infile:
 		for line in infile:
 			session_count+=1
 			id = peopleSearch(line[:-1])
