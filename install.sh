@@ -3,7 +3,7 @@ echo "Upgrading"
 #sudo apt-get upgrade
 echo "Upgrade Complete"
 echo "Intalling libraries"
-sudo apt-get install aircrack-ng i2c-tools mosquitto mosquitto-clients pciutils tshark wiringPi
+sudo apt-get install aircrack-ng i2c-tools mosquitto mosquitto-clients pciutils tshark wiringPi python-smbus
 echo "Enabling I2C"
 echo '>>> Enable I2C'
 if grep -q 'i2c-bcm2708' /etc/modules; then
@@ -16,6 +16,12 @@ if grep -q 'i2c-dev' /etc/modules; then
 else
   echo 'i2c-dev' >> /etc/modules
 fi
+if grep -q 'rtc-ds1307' /etc/modules; then
+  echo 'Seems rtc-ds1307 module already exists, skip this step.'
+else
+  echo 'rtc-ds1307' >> /etc/modules
+fi
+
 
 #replace config.txt in /boot
 sudo cp /boot/config.txt /boot/config.old
@@ -32,13 +38,16 @@ else
 fi
 
 cd /home/pi
-rm rf Hotspot
-git clone https://github.com/thingitude/Hotspot
+#rm rf Hotspot
+#git clone https://github.com/thingitude/Hotspot
+
+sudo hwclock -w
 
 echo "Setting up Cron Jobs"
 #write out current crontab
 #echo new cron into cron file
 echo "@reboot sudo /home/pi/Hotspot/WifiMon.sh on" > mycron
+echo "@reboot sudo hwclock -s" >> mycron
 echo "05 00 * * * python /home/pi/Hotspot/meantime.py day" >> mycron
 echo "08 00 * * * python /home/pi/Hotspot/meantime.py refresh" >> mycron
 echo "00,30 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh send" >>mycron
