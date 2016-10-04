@@ -46,6 +46,7 @@ echo "Setting up Cron Jobs"
 #echo new cron into cron file
 echo "@reboot sudo /home/pi/Hotspot/WifiMon.sh on" > mycron
 echo "@reboot sudo hwclock -s" >> mycron
+echo "00 03 * * * sudo /home/pi/HotspotUpdates/checkForUpdate.sh" >> mycron
 echo "05 00 * * * python /home/pi/Hotspot/meantime.py day" >> mycron
 echo "08 00 * * * python /home/pi/Hotspot/meantime.py refresh" >> mycron
 echo "00,30 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh send" >>mycron
