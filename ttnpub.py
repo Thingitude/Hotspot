@@ -18,6 +18,7 @@ if len(sys.argv) != 2:
 	sys.exit(2)
 
 thisMsg=sys.argv[1].encode('hex')
+#thisMsg=sys.argv[1].encode('base64')
 
 print("Message is: ")
 print(sys.argv[1])
@@ -128,12 +129,13 @@ rcv = readlineCR(port)
 print("ADR set "+(rcv))
 time.sleep(1)
 
-port.write("mac set pwridx 1\r\n")
+port.write("mac set pwridx 3\r\n")
 rcv = readlineCR(port)
 print("PWRIDX set "+(rcv))
 time.sleep(1)
 
-port.write("mac set dr 5\r\n")
+#port.write("mac set dr 5\r\n")
+port.write("mac set dr 1\r\n")
 rcv = readlineCR(port)
 print("DR set "+(rcv))
 time.sleep(1)

@@ -50,6 +50,7 @@ case "$1" in
 	# Collect sensor stats and send message
 	echo "Launched hotspotmq at $timenow\n" >>/home/pi/Hotspot/logfile
 	/home/pi/Hotspot/hotspotmq $wificount $meanOut
+	/home/pi/Hotspot/ttnpub $wificount
 	;;
   *)
 	# Usage error

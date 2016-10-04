@@ -38,8 +38,6 @@ else
 fi
 
 cd /home/pi
-#rm rf Hotspot
-#git clone https://github.com/thingitude/Hotspot
 
 sudo hwclock -w
 
