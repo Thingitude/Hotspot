@@ -31,6 +31,7 @@ if [ -f /home/pi/HotspotUpdates/new/Version ]; then
     sudo cp -r /home/pi/HotspotUpdates/new /home/pi/Hotspot
     sudo chown -R pi:pi /home/pi/Hotspot
     newver=`cat /home/pi/Hotspot/Version`
+    sudo /home/pi/Hotspot/update.sh
     echo "Success! Updated to version $newver." >>/home/pi/HotspotUpdates/log 
   fi
 else
