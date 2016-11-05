@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # * WifiMon.sh - turn the wifi monitor mode on or off         */
 # * (c) Mark Stanley 2016                                     */
@@ -12,7 +12,16 @@
 # * keep these comments at the top of the code so credit and  */
 # * copyright are preserved.                                  */
 
-echo "WifiMon running in 2 mins"
+# * MS - 5 Nov 2016 - version 1.1
+# * Added a test to make sure update.sh has been run, and if
+# * it hasn't then we'll run it for the first time.  Bit of
+# * belt and braces for the HotspotUpdates routines
+
+if [ ! -f /home/pi/Hotspot/up_to_date ]; then
+  sudo /home/pi/update.sh
+fi
+
+echo "WifiMon running in 1 mins"
 echo `date`
 
 sleep 60

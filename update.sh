@@ -38,6 +38,7 @@ rm mycron
 # End of changes for v1.1
 
 echo "Update.sh completed successfully." >>/home/pi/HotspotUpdates/log
+echo "Done - `date`" >/home/pi/Hotspot/up_to_date
 
 # Note that when this script exits, checkForUpdates.sh will reboot 
 # the Hotspot and your new update should be live!  Congratulations :-)
