@@ -18,7 +18,7 @@
 # * belt and braces for the HotspotUpdates routines
 
 if [ ! -f /home/pi/Hotspot/up_to_date ]; then
-  sudo /home/pi/update.sh
+  sudo /home/pi/Hotspot/update.sh
 fi
 
 echo "WifiMon running in 1 mins"
