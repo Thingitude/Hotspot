@@ -32,7 +32,7 @@ echo "00,30 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh send" >>mycron
 echo "10,20,40,50 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh">>mycron
 
 # install new cron file
-crontab mycron
+crontab -u pi mycron
 rm mycron
 
 # End of changes for v1.1
