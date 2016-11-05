@@ -17,8 +17,8 @@ cd /home/pi/Hotspot
 # got deleted if the git clone failed, for example if the network is down.
 # So the fix is quite important...
 
-mv /home/pi/Hotspot/checkForUpdates.sh /home/pi/HotspotUpdates
-chown pi:pi /home/pi/HotspotUpdates/checkForUpdates.sh
+mv /home/pi/Hotspot/checkForUpdate.sh /home/pi/HotspotUpdates
+chown pi:pi /home/pi/HotspotUpdates/checkForUpdate.sh
 
 # Setting up Cron Jobs - there aren't any changes this time but I thought 
 # I would leave it in as example code.
