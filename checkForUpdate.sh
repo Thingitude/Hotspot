@@ -1,9 +1,10 @@
 #!/bin/bash
+# /home/pi/HotspotUpdates/checkForUpdates.sh
+# 5 Nov 2016 version 1.1
 # Script to check for updates
-echo "Checking for updates"
-sudo rm -r /home/pi/HotspotUpdates/new
 
-sudo chmod -r 777 /home/pi/HotspotUpdates/new
+echo "** `date` ** Checking for updates" >>/home/pi/HotspotUpdates/log 
+sudo rm -r /home/pi/HotspotUpdates/new
 
 #turn the wifi back on
 sudo airmon-ng stop mon0
@@ -13,19 +14,27 @@ sudo ifconfig wlan0 up
 
 sleep 60
 
-#download reprositry from github
+# Attempt to download Hotspot repository from github
 
 git clone https://github.com/Thingitude/Hotspot /home/pi/HotspotUpdates/new
 
-version=`sudo python /home/pi/HotspotUpdates/checkForUpdate.py`
-echo "And the answer is $version"
+if [ -f /home/pi/HotspotUpdates/new/Version ]; then
 
-if [ $version -eq 1 ]; then
-  echo script ends here
+  version=`sudo python /home/pi/HotspotUpdates/checkForUpdate.py`
+
+  if [ $version -eq 1 ]; then
+    echo "No update received. Rebooting..." >>/home/pi/HotspotUpdates/log 
+  else
+    echo "Updating..." >>/home/pi/HotspotUpdates/log 
+    sudo rm -r /home/pi/HotspotUpdates/old
+    sudo mv /home/pi/Hotspot /home/pi/HotspotUpdates/old
+    sudo cp -r /home/pi/HotspotUpdates/new /home/pi/Hotspot
+    sudo chown -R pi:pi /home/pi/Hotspot
+    newver=`cat /home/pi/Hotspot/Version`
+    echo "Success! Updated to version $newver." >>/home/pi/HotspotUpdates/log 
+  fi
 else
-  sudo rm -r /home/pi/HotspotUpdates/old
-  sudo cp -r /home/pi/HotspotUpdates/current /home/pi/HotspotUpdates/old
-  sudo rm -r /home/pi/HotspotUpdates/current
-  sudo cp -r /home/pi/HotspotUpdates/new /home/pi/HotspotUpdates/current
-  sudo reboot
+  echo "Failed. Could not clone repository." >>/home/pi/HotspotUpdates/log
 fi
+
+sudo reboot

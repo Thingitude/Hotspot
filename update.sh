@@ -10,7 +10,18 @@ cd /home/pi/Hotspot
 
 # Insert changes for this update here...
 
-# Setting up Cron Jobs
+# MS 5 Nov 2016 - update for Hotspot v1.1
+# Purpose of this is to get the Hotspot to update the checkForUpdates.sh
+# so that in future it runs this script!  Sorry it's a bit recursive ;-)
+# Also the new checkForUpdates.sh fixes a bug whereby the Hotspot folder
+# got deleted if the git clone failed, for example if the network is down.
+# So the fix is quite important...
+
+mv /home/pi/Hotspot/checkForUpdates.sh /home/pi/HotspotUpdates
+chown pi:pi /home/pi/HotspotUpdates/checkForUpdates.sh
+
+# Setting up Cron Jobs - there aren't any changes this time but I thought 
+# I would leave it in as example code.
 
 echo "@reboot sudo /home/pi/Hotspot/WifiMon.sh on" > mycron
 echo "@reboot sudo hwclock -s" >> mycron
@@ -23,6 +34,8 @@ echo "10,20,40,50 * * * * sudo /home/pi/Hotspot/HotspotMonitor.sh">>mycron
 # install new cron file
 crontab mycron
 rm mycron
+
+# End of changes for v1.1
 
 echo "Update.sh completed successfully." >>/home/pi/HotspotUpdates/log
 
