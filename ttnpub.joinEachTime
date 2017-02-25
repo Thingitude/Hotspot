@@ -1,9 +1,6 @@
 #  TTNpub.py - sends data to TTN for publishing
 #  Written by Mark Stanley
 #
-#  25 Feb 17 - heavy revision to 
-#              a) only join when required
-#              b) avoid collisions with random delays
 
 # Import functions;
 
@@ -13,7 +10,7 @@ except RuntimeError:
 	print("Error run in sudo mode")
 	
 # External module imports
-import time, sys, tty, termios, serial, base64, random
+import time, sys, tty, termios, serial, base64
 
 # Check usage
 if len(sys.argv) != 2:
@@ -65,10 +62,9 @@ GPIO.output(LED1, GPIO.HIGH)			# Turn off
 GPIO.output(LED2, GPIO.HIGH)			# Turn off
 
 ########################################################################
-# Sub-Routines 
+# Sub-Routines - Read data from radio
 ########################################################################
 
-########################################################################
 # Used to read-in RN2483 data responses pending a Carriage return;
 def readlineCR(port):
     rv = ""
@@ -78,144 +74,42 @@ def readlineCR(port):
         if ch=='\r' or ch=='':
             return rv
 
-########################################################################
-# Subroutine to return the status of the radio - eg joined or not
-def getStatus(statusQuery):
-    port.write("mac get status\r\n")
-    statusBits = readlineCR(port)
-    print("Status bits are ")
-    print(statusBits.strip())
-    print(" and the last one is ")
-    print(statusBits.strip()[7])
-    if statusQuery=="joined":
-    	if statusBits.strip()[7]=="1":		# bit 1 says whether joined
-    		print("Device already joined network.\r\n")
-    		return "yes"
-    	else:
-    		print("Device not joined network yet.\r\n")
-    		return "no"
-
-
 
 ########################################################################
-# Subroutine to reset the RN2483 radio (rarely used)
-def resetRadio():
-    GPIO.output(LED1, GPIO.LOW)			# LED1 on
-    GPIO.output(LED2, GPIO.LOW)			# LED2 on
-    GPIO.output(Reset, GPIO.LOW)		#RN2483 reset - active low
-    time.sleep(1)
-    GPIO.output(Reset, GPIO.HIGH)
-    time.sleep(5)				# 5 seconds stability
-    port.write("sys reset\r\n")
-    rcv = readlineCR(port)
-    rcv = readlineCR(port)
-    print("Reset - Device Version\r\n" + (rcv))
-    time.sleep(3)
-    GPIO.output(LED1, GPIO.HIGH)		# LED1 off
-    GPIO.output(LED2, GPIO.HIGH)		# LED2 off
-    port.write("mac set adr on\r\n")
-    rcv = readlineCR(port)
-    print("ADR set "+(rcv))
-    time.sleep(1)
-    port.write("mac set pwridx 3\r\n")
-    rcv = readlineCR(port)
-    print("PWRIDX set "+(rcv))
-    time.sleep(1)
-    port.write("mac set dr 1\r\n")
-    rcv = readlineCR(port)
-    print("DR set "+(rcv))
-    time.sleep(1)
-
-
-########################################################################
-# Subroutine to JOIN the network
-def joinNetwork():
-    port.write("mac set appeui 70B3D57ED0000CD9\r\n")
-    while True:
-		tdata = readlineCR(port)
-		if tdata.strip() == "ok":
-			print("Application EUI is Valid")
-			break
-    port.write("mac set appkey 3B49BB48C995D2E2522393CB8DE1AF74\r\n")
-    while True:
-		tdata = readlineCR(port)
-		if tdata.strip() == "ok":
-			print("Application Key is Valid")
-			break
-    print("Joining the network.")
-    GPIO.output(LED1, GPIO.LOW)			# Turn on
-    port.write("mac join otaa\r\n")
-    tryCount=0
-    while tryCount < 6:
-		tryCount=tryCount+1
-		time.sleep(2)
-		tdata = readlineCR(port)
-		print(tdata.strip())
-		if tdata.strip() == "ok":
-			print("Join request is fine")
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.25)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-		if tdata.strip() == "accepted":
-			print("Join accepted")
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(2)
-			break
-		if tdata.strip() == "denied":
-			print("Error State - join not accepted")
-			GPIO.output(LED1, GPIO.HIGH)	# Turn off
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.25)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(0.25)
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.25)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(2)
-			GPIO.output(LED1, GPIO.LOW)	# Turn on
-			port.write("mac join otaa\r\n")
-		if tdata.strip() == "busy":
-			print("Error State - busy")
-			GPIO.output(LED1, GPIO.HIGH)	# Turn off
-			time.sleep(0.5)
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(1)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(8)
-			GPIO.output(LED1, GPIO.LOW)	# Turn on
-			port.write("mac join otaa\r\n")
-		if tdata.strip() == "no_free_ch":
-			print("Error State - no free channel")
-			GPIO.output(LED1, GPIO.HIGH)	# Turn off
-			time.sleep(1)
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.5)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(1)
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.5)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(1)
-			GPIO.output(LED2, GPIO.LOW)	# Turn on
-			time.sleep(0.5)
-			GPIO.output(LED2, GPIO.HIGH)	# Turn off
-			time.sleep(20)
-			GPIO.output(LED1, GPIO.LOW)	# Turn on
-			port.write("mac join otaa\r\n")
-    GPIO.output(LED1, GPIO.HIGH)	# Turn off
-    GPIO.output(LED2, GPIO.HIGH)	# Turn off
-
-########################################################################
-# End of subroutines
+# Start-up Code
 ########################################################################
 
-# Start script - Basic system checks
+# Execute RN2483 system reset;
 
-#resetRadio()
+# Reset RN2483 Module
+
+GPIO.output(LED1, GPIO.LOW)			# Turn on
+GPIO.output(LED2, GPIO.LOW)			# Turn on 
+
+GPIO.output(Reset, GPIO.LOW)			#RN2483 reset - active low
+time.sleep(1)
+GPIO.output(Reset, GPIO.HIGH)
+time.sleep(5)					# 5 seconds stability
+
+GPIO.output(LED1, GPIO.HIGH)			# Turn off
+GPIO.output(LED2, GPIO.HIGH)			# Turn off
+
+########################################################################
+
+# Basic system checks
+
+#port.write("sys factoryRESET\r\n")
+port.write("sys reset\r\n")
+
+rcv = readlineCR(port)
+rcv = readlineCR(port)
+print("Reset - Device Version\r\n" + (rcv))
+time.sleep(3)
+
 port.write("mac get deveui\r\n")
 rcv = readlineCR(port)
 thisDevEUI = rcv[1:]
-print("Script starts - Device EUI " + (thisDevEUI))
+print("Device EUI " + (thisDevEUI))
 time.sleep(1)
 
 port.write("radio get mod\r\n")
@@ -228,18 +122,109 @@ rcv = readlineCR(port)
 print("Frequency Band:(in Hertz)" + (rcv))
 time.sleep(1)
 
+# Set up the radio
+
+port.write("mac set adr on\r\n")
+rcv = readlineCR(port)
+print("ADR set "+(rcv))
+time.sleep(1)
+
+port.write("mac set pwridx 3\r\n")
+rcv = readlineCR(port)
+print("PWRIDX set "+(rcv))
+time.sleep(1)
+
+#port.write("mac set dr 5\r\n")
+port.write("mac set dr 1\r\n")
+rcv = readlineCR(port)
+print("DR set "+(rcv))
+time.sleep(1)
+
+
+########################################################################
+# Setup System (Thingithon Keys)
+########################################################################
+
+port.write("mac set appeui 70B3D57ED0000CD9\r\n")
+while True:
+	tdata = readlineCR(port)
+	if tdata.strip() == "ok":
+		print("Application EUI is Valid")
+		break
+port.write("mac set appkey 3B49BB48C995D2E2522393CB8DE1AF74\r\n")
+while True:
+	tdata = readlineCR(port)
+	if tdata.strip() == "ok":
+		print("Application Key is Valid")
+		break
+
+
+print("Joining the network.")
+GPIO.output(LED1, GPIO.LOW)			# Turn on
+port.write("mac join otaa\r\n")
+tryCount=0
+while tryCount < 6:
+	tryCount=tryCount+1
+	time.sleep(2)
+	tdata = readlineCR(port)
+	print(tdata.strip())
+	if tdata.strip() == "ok":
+		print("Join request is fine")
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.25)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+	if tdata.strip() == "accepted":
+		print("Join accepted")
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(2)
+		break
+	if tdata.strip() == "denied":
+		print("Error State - join not accepted")
+		GPIO.output(LED1, GPIO.HIGH)	# Turn off
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.25)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(0.25)
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.25)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(2)
+		GPIO.output(LED1, GPIO.LOW)	# Turn on
+		port.write("mac join otaa\r\n")
+	if tdata.strip() == "busy":
+		print("Error State - busy")
+		GPIO.output(LED1, GPIO.HIGH)	# Turn off
+		time.sleep(0.5)
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(1)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(8)
+		GPIO.output(LED1, GPIO.LOW)	# Turn on
+		port.write("mac join otaa\r\n")
+	if tdata.strip() == "no_free_ch":
+		print("Error State - no free channel")
+		GPIO.output(LED1, GPIO.HIGH)	# Turn off
+		time.sleep(1)
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.5)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(1)
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.5)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(1)
+		GPIO.output(LED2, GPIO.LOW)	# Turn on
+		time.sleep(0.5)
+		GPIO.output(LED2, GPIO.HIGH)	# Turn off
+		time.sleep(20)
+		GPIO.output(LED1, GPIO.LOW)	# Turn on
+		port.write("mac join otaa\r\n")
+
+GPIO.output(LED1, GPIO.HIGH)	# Turn off
+GPIO.output(LED2, GPIO.HIGH)	# Turn off
 
 # If we successfully joined, lets have a go at sending the message
-if getStatus("joined")=="no":
-	resetRadio()
-	joinNetwork()
-
-if getStatus("joined")=="yes":
-	# Pause for a random 1-60 seconds to avoid collision with other devices
-	# scheduled to send at the same sort of time
-	random.seed()			# Seed number generator with time
-	time.sleep(random.randint(1,60))
-
+if tdata.strip()=="accepted":
 	# Try to send the message
 	print("SEND MESSAGE")
 	GPIO.output(LED1, GPIO.LOW)	# Turn on
