@@ -83,6 +83,9 @@ def readlineCR(port):
 def getStatus(statusQuery):
     port.write("mac get status\r\n")
     statusBits = readlineCR(port)
+    if statusBits=="":
+    	resetRadio()
+        statusBits="00000000"
     print("Status bits are ")
     print(statusBits.strip())
     print(" and the last one is ")
@@ -113,23 +116,24 @@ def resetRadio():
     time.sleep(3)
     GPIO.output(LED1, GPIO.HIGH)		# LED1 off
     GPIO.output(LED2, GPIO.HIGH)		# LED2 off
+    port.write("mac pause\r\n")
+    rcv = readlineCR(port)
+    print("MAC pause - "+(rcv))
+    time.sleep(1)
     port.write("mac set adr on\r\n")
     rcv = readlineCR(port)
     print("ADR set "+(rcv))
     time.sleep(1)
+    # port.write("mac set pwridx 1\r\n")
     port.write("mac set pwridx 3\r\n")
     rcv = readlineCR(port)
     print("PWRIDX set "+(rcv))
     time.sleep(1)
+    # port.write("mac set dr 5\r\n")
     port.write("mac set dr 1\r\n")
     rcv = readlineCR(port)
     print("DR set "+(rcv))
     time.sleep(1)
-
-
-########################################################################
-# Subroutine to JOIN the network
-def joinNetwork():
     port.write("mac set appeui 70B3D57ED0000CD9\r\n")
     while True:
 		tdata = readlineCR(port)
@@ -142,6 +146,15 @@ def joinNetwork():
 		if tdata.strip() == "ok":
 			print("Application Key is Valid")
 			break
+    port.write("mac resume\r\n")
+    rcv = readlineCR(port)
+    print("MAC resume - "+(rcv))
+    time.sleep(1)
+
+
+########################################################################
+# Subroutine to JOIN the network
+def joinNetwork():
     print("Joining the network.")
     GPIO.output(LED1, GPIO.LOW)			# Turn on
     port.write("mac join otaa\r\n")
@@ -211,7 +224,11 @@ def joinNetwork():
 
 # Start script - Basic system checks
 
-#resetRadio()
+if sys.argv[1]=="reset":
+    resetRadio()
+    joinNetwork()
+    sys.exit(0)
+
 port.write("mac get deveui\r\n")
 rcv = readlineCR(port)
 thisDevEUI = rcv[1:]
@@ -237,7 +254,7 @@ if getStatus("joined")=="no":
 if getStatus("joined")=="yes":
 	# Pause for a random 1-60 seconds to avoid collision with other devices
 	# scheduled to send at the same sort of time
-	random.seed()			# Seed number generator with time
+	random.seed(thisDevEUI)		# Seed number generator 
 	time.sleep(random.randint(1,60))
 
 	# Try to send the message
